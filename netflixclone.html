@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Netflix Clone</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: #000;
+            color: #fff;
+            font-family: 'Arial', sans-serif;
+        }
+
+        .header {
+            padding: 20px 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            color: #e50914;
+            font-size: 2rem;
+            font-weight: bold;
+        }
+
+        .hero {
+            height: 80vh;
+            background: linear-gradient(rgba(0,0,0,0.7), rgba(0,0,0,0.7)), 
+                        url('https://assets.nflxext.com/ffe/siteui/vlv3/6e32b96a-d4be-4e44-a19b-1bd2d2279b51/ee068656-14b9-4821-89b4-53b4937d9f1c/IN-en-20220516-popsignuptwoweeks-perspective_alpha_website_small.jpg');
+            background-size: cover;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+        }
+
+        .hero-content {
+            max-width: 800px;
+        }
+
+        .hero-content h1 {
+            font-size: 3.5rem;
+            margin-bottom: 20px;
+        }
+
+        .hero-content h2 {
+            font-size: 1.5rem;
+            margin-bottom: 30px;
+        }
+
+        .cta-button {
+            background: #e50914;
+            color: white;
+            padding: 15px 25px;
+            border: none;
+            border-radius: 5px;
+            font-size: 1.2rem;
+            cursor: pointer;
+        }
+
+        .rows {
+            padding: 20px;
+        }
+
+        .row {
+            margin-bottom: 20px;
+        }
+
+        .row h2 {
+            margin-bottom: 10px;
+        }
+
+        .movies {
+            display: flex;
+            overflow-x: auto;
+            gap: 10px;
+        }
+
+        .movie {
+            min-width: 200px;
+            height: 300px;
+            background: #333;
+            border-radius: 5px;
+            position: relative;
+        }
+
+        .movie img {
+            width: 100%;
+            height: 100%;
+            border-radius: 5px;
+        }
+
+        .movie-title {
+            position: absolute;
+            bottom: 5px;
+            left: 5px;
+            color: white;
+            background: rgba(0, 0, 0, 0.7);
+            padding: 5px;
+            border-radius: 3px;
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <div class="logo">NETFLIX</div>
+        <button class="cta-button">Sign In</button>
+    </header>
+
+    <section class="hero">
+        <div class="hero-content">
+            <h1>Unlimited movies, TV shows, and more.</h1>
+            <h2>Watch anywhere. Cancel anytime.</h2>
+            <button class="cta-button">Get Started ></button>
+        </div>
+    </section>
+
+    <section class="rows">
+        <div class="row">
+            <h2>Trending Now</h2>
+            <div class="movies" id="trending"></div>
+        </div>
+
+        <div class="row">
+            <h2>Popular on Netflix</h2>
+            <div class="movies" id="popular"></div>
+        </div>
+
+        <div class="row">
+            <h2>Continue Watching</h2>
+            <div class="movies" id="continue-watching"></div>
+        </div>
+    </section>
+
+    <script>
+        const trendingMovies = [
+            { title: "Movie 1", img: "https://via.placeholder.com/200x300" },
+            { title: "Movie 2", img: "https://via.placeholder.com/200x300" },
+            { title: "Movie 3", img: "https://via.placeholder.com/200x300" },
+            { title: "Movie 4", img: "https://via.placeholder.com/200x300" },
+            { title: "Movie 5", img: "https://via.placeholder.com/200x300" },
+        ];
+
+        const popularMovies = [
+            { title: "Movie A", img: "https://via.placeholder.com/200x300" },
+            { title: "Movie B", img: "https://via.placeholder.com/200x300" },
+            { title: "Movie C", img: "https://via.placeholder.com/200x300" },
+            { title: "Movie D", img: "https://via.placeholder.com/200x300" },
+            { title: "Movie E", img: "https://via.placeholder.com/200x300" },
+        ];
+
+        const continueWatchingMovies = [
+            { title: "Movie X", img: "https://via.placeholder.com/200x300" },
+            { title: "Movie Y", img: "https://via.placeholder.com/200x300" },
+            { title: "Movie Z", img: "https://via.placeholder.com/200x300" },
+            { title: "Movie W", img: "https://via.placeholder.com/200x300" },
+            { title: "Movie V", img: "https://via.placeholder.com/200x300" },
+        ];
+
+        function populateMovies(sectionId, movies) {
+            const section = document.getElementById(sectionId);
+            movies.forEach(movie => {
+                const movieDiv = document.createElement('div');
+                movieDiv.className = 'movie';
+                movieDiv.innerHTML = `<img src="${movie.img}" alt="${movie.title}"><div class="movie-title">${movie.title}</div>`;
+                section.appendChild(movieDiv);
+            });
+        }
+
+        populateMovies('trending', trendingMovies);
+        populateMovies('popular', popularMovies);
+        populateMovies('continue-watching', continueWatchingMovies);
+    </script>
+</body>
+</html>

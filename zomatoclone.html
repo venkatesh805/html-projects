@@ -1,0 +1,429 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Zomato Clone — Single File (Inline)</title>
+  <style>
+    /* Reset & base */
+    :root{--accent:#ff3b30;--muted:#6b7280;--bg:#fafafa;--card:#ffffff}
+    *{box-sizing:border-box}body{font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,'Helvetica Neue',Arial; margin:0;background:var(--bg);color:#111}
+    a{color:inherit;text-decoration:none}
+    .container{max-width:1100px;margin:24px auto;padding:0 16px}
+
+    /* Header */
+    header{display:flex;align-items:center;gap:16px;padding:14px 0}
+    .logo{display:flex;align-items:center;gap:10px;font-weight:700}
+    .logo .dot{width:36px;height:36px;background:var(--accent);border-radius:8px;display:inline-block}
+
+    /* Search + filters */
+    .searchbar{display:flex;gap:12px;background:var(--card);padding:12px;border-radius:10px;box-shadow:0 1px 4px rgba(15,15,15,0.06)}
+    .searchbar input{flex:1;padding:10px;border:1px solid #e6e6e9;border-radius:8px;font-size:15px}
+    .chip{display:inline-flex;align-items:center;padding:8px 10px;border-radius:999px;border:1px solid #eee;background:#fff;cursor:pointer}
+
+    /* Layout */
+    .main{display:grid;grid-template-columns:1fr 320px;gap:18px;margin-top:18px}
+
+    /* Card grid */
+    .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:16px}
+    .card{background:var(--card);border-radius:12px;overflow:hidden;box-shadow:0 4px 18px rgba(3,3,3,0.06);display:flex;flex-direction:column}
+    .card img{width:100%;height:160px;object-fit:cover}
+    .card-body{padding:12px;display:flex;flex-direction:column;gap:8px}
+    .meta{display:flex;justify-content:space-between;align-items:center}
+    .rating{background:#052c65;color:#fff;padding:6px 8px;border-radius:8px;font-weight:600}
+    .cuisines{color:var(--muted);font-size:13px}
+
+    /* Sidebar - cart & filters */
+    aside{position:sticky;top:18px}
+    .panel{background:var(--card);padding:12px;border-radius:12px;box-shadow:0 2px 8px rgba(0,0,0,0.04)}
+    .cart-item{display:flex;gap:10px;align-items:center;margin-bottom:8px}
+    .btn{background:var(--accent);color:#fff;padding:10px 12px;border-radius:8px;border:0;cursor:pointer}
+    .btn.ghost{background:transparent;color:var(--accent);border:1px solid var(--accent)}
+
+    /* Modal */
+    .modal-backdrop{position:fixed;inset:0;background:rgba(0,0,0,0.45);display:none;align-items:flex-end;justify-content:center}
+    .modal{background:#fff;border-radius:12px;width:100%;max-width:900px;max-height:92vh;overflow:auto;padding:16px}
+    .modal.show{display:block}
+
+    /* Responsive */
+    @media(max-width:900px){.main{grid-template-columns:1fr}.container{padding:0 12px}}
+
+    /* small helpers */
+    .flex{display:flex;gap:8px;align-items:center}
+    .muted{color:var(--muted)}
+    .pill{padding:6px 8px;border-radius:8px;border:1px solid #eee;font-size:13px}
+    .badge{background:#111;color:#fff;padding:6px 8px;border-radius:8px;font-size:13px}
+    .favorite{cursor:pointer}
+
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <div class="logo"><span class="dot"></span><div>
+        <div style="font-size:16px">zomato — Food & Delivery</div>
+        <div style="font-size:12px;color:var(--muted)">Prototype · single-file HTML</div>
+      </div></div>
+
+      <div style="flex:1"></div>
+
+      <div class="flex">
+        <button class="chip" id="loginBtn">Sign in</button>
+        <button class="chip" id="favoritesToggle">Favorites (<span id="favCount">0</span>)</button>
+      </div>
+    </header>
+
+    <div class="searchbar">
+      <input id="searchInput" placeholder="Search restaurants, cuisines, dishes..." />
+      <div class="flex">
+        <div class="chip" id="filterVeg">Veg</div>
+        <div class="chip" id="filterDelivery">Fast Delivery</div>
+      </div>
+      <div style="margin-left:auto" class="flex">
+        <div class="pill" id="sortSelect">Sort: Popular</div>
+      </div>
+    </div>
+
+    <div class="main">
+      <main>
+        <section style="margin-top:18px;display:flex;justify-content:space-between;align-items:center">
+          <h2 style="margin:0">Restaurants</h2>
+          <div class="muted">Showing <span id="resultCount">0</span> results</div>
+        </section>
+
+        <div style="margin-top:12px" class="grid" id="restaurantGrid"></div>
+      </main>
+
+      <aside>
+        <div class="panel" style="margin-bottom:12px">
+          <h3 style="margin:0 0 8px 0">Cart</h3>
+          <div id="cartList"></div>
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-top:8px">
+            <div class="muted">Total:</div>
+            <div id="cartTotal">₹0</div>
+          </div>
+          <div style="margin-top:12px;display:flex;gap:8px">
+            <button class="btn" id="checkoutBtn">Checkout</button>
+            <button class="btn ghost" id="clearCartBtn">Clear</button>
+          </div>
+        </div>
+
+        <div class="panel">
+          <h4 style="margin:0 0 8px 0">Filters</h4>
+          <div style="display:flex;gap:8px;flex-direction:column">
+            <label><input type="checkbox" id="filterVegBox"> Veg only</label>
+            <label><input type="checkbox" id="filterFastBox"> Fast delivery (&lt;30m)</label>
+            <label>Min rating: <input id="filterRating" type="range" min="0" max="5" step="0.5" value="0"/></label>
+          </div>
+        </div>
+      </aside>
+    </div>
+
+    <!-- Modal for restaurant details -->
+    <div class="modal-backdrop" id="modalBackdrop">
+      <div class="modal" id="restaurantModal">
+        <!-- dynamic content injected -->
+      </div>
+    </div>
+
+    <!-- Login modal (mock) -->
+    <div class="modal-backdrop" id="loginBackdrop">
+      <div class="modal" style="max-width:420px;padding:20px;">
+        <h3>Sign in</h3>
+        <p class="muted">This is a mock sign-in. No external auth.</p>
+        <input id="username" placeholder="Your name" style="width:100%;padding:10px;margin-top:8px;border-radius:8px;border:1px solid #e6e6e9" />
+        <div style="display:flex;gap:8px;margin-top:12px">
+          <button class="btn" id="doLogin">Sign in</button>
+          <button class="btn ghost" id="closeLogin">Cancel</button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    /***************
+      Mock data & helpers
+    ****************/ 
+    const restaurants = [
+      {
+        id: 'r1', name: 'Curry Corner', cuisines: ['North Indian','Biryani'], rating: 4.4, costForTwo: 450, deliveryTime: 28, veg:true, img:'https://images.unsplash.com/photo-1604908177522-1f3b59f2d9f8?q=80&w=1200&auto=format&fit=crop&crop=faces',
+        menu:[
+          {id:'m1',name:'Butter Chicken',price:220},
+          {id:'m2',name:'Paneer Tikka',price:180},
+          {id:'m3',name:'Garlic Naan',price:40}
+        ],reviews:[{user:'Anita',rating:5,txt:'Amazing biryani!'},{user:'Ravi',rating:4,txt:'Good flavors.'}]
+      },
+      {
+        id: 'r2', name: 'Green Bowl', cuisines: ['Salads','Healthy'], rating: 4.7, costForTwo: 350, deliveryTime: 20, veg:true, img:'https://images.unsplash.com/photo-1512621776951-a57141f2eefd?q=80&w=1200&auto=format&fit=crop&crop=faces',
+        menu:[{id:'m4',name:'Quinoa Bowl',price:210},{id:'m5',name:'Green Smoothie',price:120}],reviews:[{user:'Meera',rating:5,txt:'Fresh & light.'}]
+      },
+      {
+        id: 'r3', name: 'Pasta Plaza', cuisines: ['Italian'], rating: 4.2, costForTwo: 500, deliveryTime: 35, veg:false, img:'https://images.unsplash.com/photo-1523986371872-9d3ba2e2f642?q=80&w=1200&auto=format&fit=crop&crop=faces',
+        menu:[{id:'m6',name:'Penne Alfredo',price:260},{id:'m7',name:'Garlic Bread',price:70}],reviews:[]
+      },
+      {
+        id: 'r4', name: 'Sushi Station', cuisines: ['Japanese'], rating: 4.6, costForTwo: 900, deliveryTime: 45, veg:false, img:'https://images.unsplash.com/photo-1553621042-f6e147245754?q=80&w=1200&auto=format&fit=crop&crop=faces',
+        menu:[{id:'m8',name:'Salmon Roll',price:520},{id:'m9',name:'Miso Soup',price:120}],reviews:[{user:'Ken',rating:5,txt:'Authentic!'}]
+      }
+    ];
+
+    // persistent state
+    let state = {
+      query: '',
+      vegOnly:false,
+      fastOnly:false,
+      minRating:0,
+      sort: 'popular',
+      favorites: JSON.parse(localStorage.getItem('z_favs')||'[]'),
+      cart: JSON.parse(localStorage.getItem('z_cart')||'{}'),
+      user: localStorage.getItem('z_user') || null
+    };
+
+    /***************
+      Rendering
+    ****************/ 
+    const grid = document.getElementById('restaurantGrid');
+    const resultCount = document.getElementById('resultCount');
+    const favCount = document.getElementById('favCount');
+
+    function render() {
+      // filters
+      let list = restaurants.filter(r=>{
+        if(state.vegOnly && !r.veg) return false;
+        if(state.fastOnly && r.deliveryTime>30) return false;
+        if(r.rating < state.minRating) return false;
+        if(state.query){
+          const q=state.query.toLowerCase();
+          if(!r.name.toLowerCase().includes(q) && !r.cuisines.join(' ').toLowerCase().includes(q)) return false;
+        }
+        return true;
+      });
+
+      // sort
+      if(state.sort==='rating') list.sort((a,b)=>b.rating-a.rating);
+      else if(state.sort==='cost_low') list.sort((a,b)=>a.costForTwo-b.costForTwo);
+      else list.sort((a,b)=>b.rating-a.rating);
+
+      grid.innerHTML='';
+      list.forEach(r=>{
+        const el = document.createElement('div'); el.className='card';
+        el.innerHTML = `
+          <img src="${r.img}" alt="${r.name}" />
+          <div class="card-body">
+            <div style="display:flex;justify-content:space-between;align-items:start">
+              <div>
+                <div style="font-weight:700">${r.name}</div>
+                <div class="cuisines">${r.cuisines.join(' • ')} · ₹${r.costForTwo} for two</div>
+              </div>
+              <div style="text-align:right">
+                <div class="rating">${r.rating.toFixed(1)}</div>
+                <div class="muted" style="font-size:12px">${r.deliveryTime} mins</div>
+              </div>
+            </div>
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-top:8px">
+              <div class="flex">
+                <button class="btn" data-id="${r.id}" onclick="openRestaurant('${r.id}')">Open</button>
+                <button class="chip" onclick="addRandomDish('${r.id}')">Add dish</button>
+              </div>
+              <div>
+                <span class="favorite" onclick="toggleFav('${r.id}',event)"> ${state.favorites.includes(r.id)?'💖':'🤍'} </span>
+              </div>
+            </div>
+          </div>
+        `;
+        grid.appendChild(el);
+      });
+
+      resultCount.textContent = list.length;
+      favCount.textContent = state.favorites.length;
+      updateCartUI();
+    }
+
+    /***************
+      Restaurant modal + actions
+    ****************/ 
+    const modalBackdrop = document.getElementById('modalBackdrop');
+    function openRestaurant(id){
+      const r = restaurants.find(x=>x.id===id);
+      if(!r) return;
+      const modal = document.getElementById('restaurantModal');
+      modal.innerHTML = `
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <div>
+            <h2 style="margin:0">${r.name} <span class="muted" style="font-size:14px">· ${r.cuisines.join(', ')}</span></h2>
+            <div class="muted">₹${r.costForTwo} for two · ${r.deliveryTime} mins · Rating ${r.rating}</div>
+          </div>
+          <div style="display:flex;gap:8px;align-items:center">
+            <button class="btn" onclick="closeModal()">Close</button>
+          </div>
+        </div>
+
+        <div style="margin-top:12px;display:grid;grid-template-columns:1fr 320px;gap:12px">
+          <div>
+            <img src="${r.img}" style="width:100%;height:240px;object-fit:cover;border-radius:8px" />
+            <h3>Menu</h3>
+            <div id="menuList">
+              ${r.menu.map(m=>`<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px dashed #eee"><div><strong>${m.name}</strong><div class="muted">₹${m.price}</div></div><div><button class='btn' onclick="addToCart('${r.id}','${m.id}')">Add</button></div></div>`).join('')}
+            </div>
+
+            <h3 style="margin-top:14px">Reviews</h3>
+            <div id="reviewsList">${r.reviews.map(rv=>`<div style="border-bottom:1px solid #f2f2f2;padding:8px 0"><strong>${rv.user}</strong> — ${rv.rating} ⭐<div class="muted">${rv.txt}</div></div>`).join('')}
+            </div>
+            <div style="margin-top:8px">
+              <textarea id="newReview" placeholder="Write a review..." style="width:100%;height:80px;padding:8px;border-radius:8px;border:1px solid #eee"></textarea>
+              <div style="display:flex;justify-content:flex-end;margin-top:6px"><button class="btn" onclick="submitReview('${r.id}')">Submit review</button></div>
+            </div>
+          </div>
+
+          <div>
+            <div class="panel">
+              <h4 style="margin-top:0">About</h4>
+              <div class="muted">Sample address · Open now</div>
+              <div style="margin-top:8px">Map (placeholder)</div>
+              <div style="margin-top:8px"><iframe src="https://maps.google.com/maps?q=${encodeURIComponent(r.name+' India')}&output=embed" style="width:100%;height:200px;border:0;border-radius:8px"></iframe></div>
+            </div>
+
+            <div style="margin-top:12px" class="panel">
+              <h4 style="margin:0 0 8px 0">Popular items</h4>
+              ${r.menu.slice(0,3).map(m=>`<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px dashed #eee"><div>${m.name}</div><div><strong>₹${m.price}</strong></div></div>`).join('')}
+              <div style="margin-top:8px"><button class="btn" onclick="addAllToCart('${r.id}')">Add all popular</button></div>
+            </div>
+          </div>
+        </div>
+      `;
+      modalBackdrop.style.display='flex';
+    }
+    function closeModal(){ modalBackdrop.style.display='none'; }
+
+    /***************
+      Cart logic
+    ****************/ 
+    function saveState(){
+      localStorage.setItem('z_favs',JSON.stringify(state.favorites));
+      localStorage.setItem('z_cart',JSON.stringify(state.cart));
+      if(state.user) localStorage.setItem('z_user',state.user);
+    }
+
+    function addToCart(rid, mid){
+      const r = restaurants.find(x=>x.id===rid);
+      if(!r) return;
+      const m = r.menu.find(x=>x.id===mid);
+      if(!m) return;
+      state.cart[mid] = state.cart[mid] || {id:mid,name:m.name,price:m.price,qty:0,restaurant:rid};
+      state.cart[mid].qty += 1;
+      saveState(); render();
+    }
+
+    function addAllToCart(rid){
+      const r = restaurants.find(x=>x.id===rid);
+      if(!r) return;
+      r.menu.slice(0,3).forEach(m=>{ state.cart[m.id] = state.cart[m.id] || {id:m.id,name:m.name,price:m.price,qty:0,restaurant:rid}; state.cart[m.id].qty +=1});
+      saveState(); render();
+    }
+
+    function addRandomDish(rid){
+      const r = restaurants.find(x=>x.id===rid);
+      const m = r.menu[Math.floor(Math.random()*r.menu.length)];
+      addToCart(rid,m.id);
+    }
+
+    function updateCartUI(){
+      const cartList = document.getElementById('cartList');
+      cartList.innerHTML='';
+      let total=0; for(const k in state.cart){const it=state.cart[k];
+        const div = document.createElement('div'); div.className='cart-item';
+        div.innerHTML = `<div style="flex:1"><strong>${it.name}</strong><div class='muted'>x${it.qty} · ₹${it.price}</div></div><div><button class='chip' onclick="changeQty('${it.id}',-1)">-</button><button class='chip' onclick="changeQty('${it.id}',1)">+</button></div>`;
+        cartList.appendChild(div);
+        total += it.price * it.qty;
+      }
+      document.getElementById('cartTotal').textContent = `₹${total}`;
+      saveState();
+    }
+
+    function changeQty(id,delta){
+      if(!state.cart[id]) return; state.cart[id].qty += delta; if(state.cart[id].qty<=0) delete state.cart[id]; render();
+    }
+
+    document.getElementById('clearCartBtn').addEventListener('click',()=>{ state.cart={}; saveState(); render(); });
+    document.getElementById('checkoutBtn').addEventListener('click',()=>{
+      if(!state.user){ alert('Please sign in (mock) to checkout'); document.getElementById('loginBackdrop').style.display='flex'; return; }
+      if(Object.keys(state.cart).length===0){ alert('Cart is empty'); return; }
+      // Mock checkout — just clear and show order id
+      const orderId = 'ORD' + Math.random().toString(36).slice(2,8).toUpperCase();
+      alert('Order placed! ID: ' + orderId);
+      state.cart = {}; saveState(); render();
+    });
+
+    /***************
+      Favorites
+    ****************/ 
+    function toggleFav(id,e){
+      e && e.stopPropagation();
+      const idx = state.favorites.indexOf(id);
+      if(idx>=0) state.favorites.splice(idx,1); else state.favorites.push(id);
+      saveState(); render();
+    }
+
+    document.getElementById('favoritesToggle').addEventListener('click',()=>{
+      // quick filter for favorites
+      if(state.favorites.length===0){ alert('No favorites yet'); return; }
+      state.query = ''; state.vegOnly=false; state.fastOnly=false; state.minRating=0;
+      // show only favorites by temporary hack: set a custom filter
+      const orig = restaurants.slice();
+      const favList = restaurants.filter(r=>state.favorites.includes(r.id));
+      grid.innerHTML=''; favList.forEach(r=>{
+        const el = document.createElement('div'); el.className='card';
+        el.innerHTML = `<img src="${r.img}" alt="${r.name}" /><div class='card-body'><div style='display:flex;justify-content:space-between'><div><strong>${r.name}</strong><div class='muted'>${r.cuisines.join(', ')}</div></div><div><div class='rating'>${r.rating}</div></div></div><div style='margin-top:8px'><button class='btn' onclick="openRestaurant('${r.id}')">Open</button></div></div>`;
+        grid.appendChild(el);
+      });
+      resultCount.textContent = favList.length;
+    });
+
+    /***************
+      Reviews
+    ****************/ 
+    function submitReview(rid){
+      const ta = document.getElementById('newReview');
+      if(!ta) return; const txt = ta.value.trim(); if(!txt) return alert('Please write something');
+      const r = restaurants.find(x=>x.id===rid); r.reviews.unshift({user:state.user||'Guest',rating:5,txt});
+      ta.value=''; render();
+      // update modal if open
+      const reviewsList = document.getElementById('reviewsList'); if(reviewsList) reviewsList.insertAdjacentHTML('afterbegin',`<div style="border-bottom:1px solid #f2f2f2;padding:8px 0"><strong>${state.user||'Guest'}</strong> — 5 ⭐<div class="muted">${txt}</div></div>`);
+    }
+
+    /***************
+      Search & filters
+    ****************/ 
+    document.getElementById('searchInput').addEventListener('input',e=>{ state.query = e.target.value; render(); });
+    document.getElementById('filterVegBox').addEventListener('change',e=>{ state.vegOnly = e.target.checked; render(); });
+    document.getElementById('filterFastBox').addEventListener('change',e=>{ state.fastOnly = e.target.checked; render(); });
+    document.getElementById('filterRating').addEventListener('input',e=>{ state.minRating = parseFloat(e.target.value); render(); });
+
+    // login modal
+    document.getElementById('loginBtn').addEventListener('click',()=>{ document.getElementById('loginBackdrop').style.display='flex'; });
+    document.getElementById('closeLogin').addEventListener('click',()=>{ document.getElementById('loginBackdrop').style.display='none'; });
+    document.getElementById('doLogin').addEventListener('click',()=>{
+      const name = document.getElementById('username').value.trim(); if(!name) return alert('Enter name');
+      state.user = name; saveState(); document.getElementById('loginBackdrop').style.display='none'; alert('Signed in as ' + name);
+    });
+
+    // close modal by clicking backdrop
+    document.getElementById('modalBackdrop').addEventListener('click',e=>{ if(e.target.id==='modalBackdrop') closeModal(); });
+    document.getElementById('loginBackdrop').addEventListener('click',e=>{ if(e.target.id==='loginBackdrop') document.getElementById('loginBackdrop').style.display='none'; });
+
+    // init
+    render();
+
+    // expose for inline handlers (not ideal but simple for single file)
+    window.openRestaurant = openRestaurant;
+    window.closeModal = closeModal;
+    window.addToCart = addToCart;
+    window.addAllToCart = addAllToCart;
+    window.addRandomDish = addRandomDish;
+    window.changeQty = changeQty;
+    window.toggleFav = toggleFav;
+    window.submitReview = submitReview;
+  </script>
+</body>
+</html>
