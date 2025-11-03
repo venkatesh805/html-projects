@@ -1,0 +1,140 @@
+<!DOCTYPE html> 
+<html lang="en"> 
+<head> 
+  <meta charset="UTF-8"> 
+  <meta name="viewport" content="width=device-width, 
+initial-scale=1.0"> 
+  <title>Student Attendance Tracker</title> 
+
+
+
+
+
+
+  <style> 
+    body { 
+  font-family: Arial, sans-serif; 
+  background: linear-gradient(135deg, #a8edea, 
+#fed6e3);   text-align: center;   
+   padding: 20px; 
+} 
+ 
+.container {   background: white;   padding: 20px;   border-radius: 15px;   box-shadow: 0 0 10px #888; 
+  width: 80%;   margin: 0 auto; 
+} 
+ 
+.add-student {   margin-bottom: 20px; 
+}  input {   padding: 8px;   width: 200px;   border-radius: 5px;   border: 1px solid #888; 
+} 
+ button {   padding: 8px 15px;   margin-left: 5px;   border: none;   background-color: #4caf50;   color: white;   border-radius: 5px;   cursor: pointer; 
+}  button:hover {   background-color: #45a049; 
+}  table {   width: 100%;   border-collapse: collapse;   margin-top: 10px; 
+}  th, td {   border: 1px solid #aaa;   padding: 10px; 
+} 
+ .present {   color: green;   font-weight: bold; 
+} 
+ 
+.absent {
+  color: red;
+  font-weight: bold;
+}
+
+#summary {
+  margin-top: 20px;
+  padding: 10px;
+  background-color: #f2f2f2;
+  border-radius: 10px;
+}
+  </style>
+</head> 
+
+
+
+
+<body> 
+  <h1> Student Attendance Tracker</h1> 
+ 
+  <div class="container"> 
+    <div class="add-student"> 
+      <input type="text" id="studentName" placeholder="Enter student name"> 
+      <button onclick="addStudent()">Add 
+Student</button> 
+    </div> 
+ 
+    <table id="attendanceTable"> 
+      <thead>         <tr> 
+          <th>Name</th> 
+          <th>Status</th> 
+          <th>Action</th> 
+        </tr> 
+      </thead>       <tbody> 
+        <!-- Student rows appear here --> 
+      </tbody> 
+    </table> 
+ 
+    <div id="summary"> 
+      <h3>Daily Summary</h3> 
+      <p id="summaryText">No attendance marked yet.</p>     </div> 
+  </div> 
+ 
+
+
+
+
+
+  <script>
+    let students = []; 
+ 
+function addStudent() {   const name = 
+document.getElementById("studentName").value.trim(); 
+  if (name === "") { 
+    alert("Please enter a student name!");     return; 
+  }  
+  students.push({ name, status: "Not Marked" });   document.getElementById("studentName").value = ""; 
+  displayStudents(); 
+}  
+function displayStudents() { 
+  const tbody = 
+document.querySelector("#attendanceTable tbody"); 
+  tbody.innerHTML = ""; 
+ 
+  students.forEach((student, index) => {     const row = document.createElement("tr"); 
+ 
+    const nameCell = document.createElement("td");     nameCell.textContent = student.name; 
+ 
+    const statusCell = document.createElement("td");     statusCell.textContent = student.status;     statusCell.className = student.status === 
+"Present" ? "present" :                            student.status === 
+"Absent" ? "absent" : ""; 
+ 
+    const actionCell = document.createElement("td"); 
+    const presentBtn = document.createElement("button");     presentBtn.textContent = "Present"; 
+    presentBtn.onclick = () => markAttendance(index, 
+"Present"); 
+ 
+    const absentBtn = document.createElement("button");     absentBtn.textContent = "Absent"; 
+    absentBtn.onclick = () => markAttendance(index, 
+"Absent");  
+    actionCell.appendChild(presentBtn);     actionCell.appendChild(absentBtn); 
+ 
+    row.appendChild(nameCell);     row.appendChild(statusCell);     row.appendChild(actionCell);     tbody.appendChild(row); 
+  });  
+  updateSummary(); 
+}  
+function markAttendance(index, status) {   students[index].status = status; 
+  displayStudents(); 
+}  
+function updateSummary() { 
+  let presentCount = students.filter(s => s.status 
+=== "Present").length; 
+  let absentCount = students.filter(s => s.status === 
+"Absent").length; 
+  let total = students.length; 
+ 
+  let text = total === 0     ? "No students added yet." 
+    : `Total: ${total} | Present: ${presentCount} | Absent: ${absentCount}`; 
+  document.getElementById("summaryText").textContent 
+= text; } 
+  </script> 
+</body> 
+</html> 
+ 
